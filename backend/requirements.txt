@@ -1,0 +1,7 @@
+Flask
+gunicorn
+flask-cors
+feedparser
+requests
+beautifulsoup4
+lxml
