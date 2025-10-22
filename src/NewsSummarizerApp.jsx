@@ -139,24 +139,33 @@ export default function NewsSummarizerApp() {
     let cancelled = false;
 
     async function fetchOne(url) {
-      try {
-        const res = await fetch(`${API_BASE}${encodeURIComponent(url)}`);
-        if (!res.ok) {
-          console.warn("Feed failed:", url, res.status);
-          return [];
-        }
-        const data = await res.json();
-        const source = data.feed || new URL(url).hostname;
-        return (data.articles || []).map((a) => {
-          const enriched = { ...a, source };
-          const cat = categorizeArticle(enriched);
-          return { ...enriched, category: cat.id, _catScore: cat.score };
-        });
-      } catch (e) {
-        console.warn("Feed error:", url, e);
-        return [];
-      }
+  try {
+    const API = import.meta.env.VITE_API_BASE;
+    const endpoint = `${API}/api/feed?url=${encodeURIComponent(url)}`;
+
+    const response = await fetch(endpoint, {
+      headers: { Accept: "application/json" },
+    });
+
+    if (!response.ok) {
+      console.warn("Feed failed:", url, response.status);
+      return [];
     }
+
+    const data = await response.json();
+    const source = data.feed || new URL(url).hostname;
+
+    return (data.articles || []).map((a) => {
+      const enriched = { ...a, source };
+      const cat = categorizeArticle(enriched); // your function
+      return { ...enriched, category: cat.id, _catScore: cat.score };
+    });
+  } catch (e) {
+    console.warn("Feed error:", url, e);
+    return [];
+  }
+}
+
 
     async function loadAll() {
       if (!cancelled) setLoading(true);
